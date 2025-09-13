@@ -1,0 +1,42 @@
+# version: '3.8'
+
+services:
+  
+  postgres:
+    container_name: fofejour_postgres
+    image: postgres
+    environment:
+      POSTGRES_USER: foferys
+      POSTGRES_PASSWORD: foferys
+      PGDATA: /data/postgres
+    volumes:
+      - postgres:/data/postgres
+    ports:
+      - "5434:5432"
+    networks:
+      - fofejourdb
+    restart: unless-stopped
+
+  pgadmin:
+    container_name: pgadmin_fofejour
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pgadmin4@pgadmin.org
+      PGADMIN_DEFAULT_PASSWORD: -admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    ports:
+      - "5051:80"
+    networks:
+      - fofejourdb
+    restart: unless-stopped
+
+
+networks:
+  fofejourdb:
+    driver: bridge
+    
+volumes:
+  postgres:
+  pgadmin:
