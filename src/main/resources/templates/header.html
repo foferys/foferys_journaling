@@ -1,0 +1,34 @@
+<nav class="navbar navbar-expand-lg bg-light" th:fragment="navbar">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">Jpa fofeShop</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/fusa">Fusa🐈‍⬛</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" th:text="@{'ciao ' + ${session.userName}}">
+            <!-- Account -->
+          </a>
+          <ul class="dropdown-menu">
+            <li>
+              <div style=" width: 110px;height: 110px; border-radius: 50%; margin-left: 15px; overflow: hidden;">
+                <!-- prendo l'immagine dalla sessione passata dal mapping "/" -->
+                <img th:if="${session.imgUser != null and session.imgUser.matches('^(http|https)://.*')}" id="profiloImg" onclick="window.location.href='/account'" style="width: 100%; height: 100%; object-fit: cover;" th:src="${session.imgUser}" alt="immagine di profilo">
+                <img id="profiloImg" onclick="window.location.href='/account'" style="width: 100%; height: 100%; object-fit: cover;" th:src="@{'/images/' + ${session.imgUser}}" alt="immagine di profilo">
+              </div>
+              <a class="dropdown-item" href="/account">My Account</a>
+            </li>
+            <li><a class="dropdown-item text-danger" href="/logout">Log out</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
