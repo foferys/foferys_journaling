@@ -16,6 +16,11 @@ public interface UserRepository extends JpaRepository<User, Integer>{
     
     Optional<User> findByGithubId(String githubId);
 
-    User findByUsername(String username);
+    //Optional è un wrapper introdotto in Java 8 per rappresentare un valore che può esserci o non esserci (cioè null).
+    //Se il valore è presente → contiene un oggetto.
+    //Se il valore è assente → è vuoto.
+    //con Optional possiamo usare il metodo isPresent() quando chiamiamo questo metodo per cercare l'utente
+    Optional<User> findByUsername(String username);
+    
 
 }

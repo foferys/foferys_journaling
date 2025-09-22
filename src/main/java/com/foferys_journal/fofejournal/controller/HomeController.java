@@ -60,7 +60,7 @@ public class HomeController {
 
             if (auth.getPrincipal() instanceof UserDetails) {
                 UserDetails userDetails = (UserDetails) auth.getPrincipal();
-                User user = userRepository.findByUsername(userDetails.getUsername());
+                User user = userRepository.findByUsername(userDetails.getUsername()).get();
 
                 session.setAttribute("imgUser", user.getImg());
                 session.setAttribute("userName", user.getNome());

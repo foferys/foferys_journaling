@@ -79,7 +79,7 @@ public class FusaService {
 
     public void saveProduct(FusaDto fusaDto, String imageFileName, String username) {
 
-        User user = uRepo.findByUsername(username);
+        User user = uRepo.findByUsername(username).get();
 
         //accediamo direttamente al metodo statico del builder passandogli i dati di cui ha bisogno
         Fusa fusa = FusaBuilder.toEntity(fusaDto, user, imageFileName);

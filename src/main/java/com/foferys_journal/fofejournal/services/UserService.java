@@ -10,6 +10,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import javax.management.RuntimeErrorException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.foferys_journal.fofejournal.models.User;
 import com.foferys_journal.fofejournal.models.UserDto;
 import com.foferys_journal.fofejournal.models.builder.UserDtoBuilder;
+
+import jakarta.transaction.Transactional;
 
 
 @Service
@@ -83,18 +87,23 @@ public class UserService {
         return userImageName;
     }
 
+    @Transactional
+    public User saveUser(UserDto userDto, String imageFileName) {
 
-    public void saveUser(UserDto userDto, String imageFileName) {
+        // fare controllo su esistenza username 
+        if(userRepository.findByUsername(userDto.getUsername()).isPresent()){
+            throw new RuntimeException("Username gia presente: " + userDto.getUsername());
+        }
 
         User insertUser = UserDtoBuilder.UserFromDtoToEntity(userDto, imageFileName, passwordEncoder.encode(userDto.getPassword()));
 
-        userRepository.save(insertUser);
+        return userRepository.save(insertUser);
     }
 
 
     public User getUserByUsername(String username) {
 
-        User user = userRepository.findByUsername(username);
+        User user = userRepository.findByUsername(username).get();
 
         return user;
     }
