@@ -50,14 +50,17 @@ public class SignupController {
 
             return "redirect:formlogin";
 
-        } catch (Exception e) {
+        }catch(RuntimeException re) {
+            System.out.println("runtime exeption: " + re.getMessage());
+            model.addAttribute("usernamePresent", "L'Username "+ userDto.getUsername()+" già presente");
+            return "/signup";
+        }catch (Exception e) {
             System.out.println("Exception: " + e.getMessage());
-            // return "/signup";
+            return "/signup";
         }
 
 
 
-        return "formlogin";
         
     }
     

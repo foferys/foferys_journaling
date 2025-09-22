@@ -20,9 +20,11 @@
                     <div class="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
       
                       <p class="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Sign up</p>
-      
+
+                      
+                      
                       <form action="/signupProcess" class="mx-1 mx-md-4" th:object="${userDto}" method="POST" enctype="multipart/form-data">
-      
+                        
                         <div class="d-flex flex-row align-items-center mb-4">
                           <i class="fas fa-user fa-lg me-3 fa-fw"></i>
                           <div data-mdb-input-init class="form-outline flex-fill mb-0">
@@ -30,11 +32,15 @@
                             <label class="form-label" for="form3Example1c">Your Name</label>
                           </div>
                         </div>
-                  
-      
+                        
+                        
                         <div class="d-flex flex-row align-items-center mb-4">
+                          
                           <i class="fas fa-envelope fa-lg me-3 fa-fw"></i>
                           <div data-mdb-input-init class="form-outline flex-fill mb-0">
+                            <!-- stampa dell'errore in caso di eccezione passato tramite model -->
+                            <p class="text-danger" th:if="${usernamePresent}" th:text="${usernamePresent}"></p>
+
                             <input type="text" id="form3Example3c" class="form-control" th:field="${userDto.username}"/>
                             <label class="form-label" for="form3Example3c">Username</label>
                             <p th:if="${#fields.hasErrors('username')}" th:errorclass="text-danger"
@@ -46,7 +52,7 @@
                         <div class="d-flex flex-row align-items-center mb-4">
                           <i class="fas fa-lock fa-lg me-3 fa-fw"></i>
                           <div data-mdb-input-init class="form-outline flex-fill mb-0">
-                            <input type="text" id="form3Example4c" class="form-control" th:field="${userDto.password}"/>
+                            <input type="password" id="form3Example4c" class="form-control" th:field="${userDto.password}"/>
                             <label class="form-label" for="form3Example4c">Password</label>
                             <p th:if="${#fields.hasErrors('password')}" th:errorclass="text-danger"
                             th:errors="${userDto.password}">

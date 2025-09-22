@@ -57,7 +57,7 @@ public class FusaController {
         }else if(userDetails != null && principalUser instanceof UserDetails) {
           
             UserDetails userDet = (UserDetails) principalUser;
-            int userid = userRepo.findByUsername(userDet.getUsername()).getId();
+            int userid = userRepo.findByUsername(userDet.getUsername()).get().getId();
             List<Fusa> listafusa = fusa_repo.findByUserId(userid); //-> uso il metodo creato in productRepository per avere i prodotti in base all'id
             model.addAttribute("listafusa", listafusa);
         }
