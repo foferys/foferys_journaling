@@ -10,6 +10,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -21,8 +22,11 @@ import com.foferys_journal.fofejournal.models.builder.UserDtoBuilder;
 import com.foferys_journal.fofejournal.services.UserRepository;
 import com.foferys_journal.fofejournal.services.UserService;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;
+import java.util.Optional;
+
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -91,7 +95,6 @@ public class AccountController {
         UserDto userDto = new UserDto();
         userDto.setNome(user.getNome());
         userDto.setUsername(user.getUsername());
-        userDto.setPassword(user.getPassword());
 
         model.addAttribute("utente",user);
         model.addAttribute("userDto",userDto);
@@ -99,40 +102,39 @@ public class AccountController {
         return "/account/edituser";
     }
     
+
     @PostMapping("/modificautente")
-    public String modifica(Model model, @RequestParam int id, @Valid @ModelAttribute UserDto userDto, BindingResult result, @AuthenticationPrincipal UserDetails userDetails) {
+    public String modifica(Model model, @RequestParam int id, @Valid @ModelAttribute UserDto userDto, BindingResult result) {
+    
 
-        userService.validateImageFile(userDto, result);
-
-        //controlliamo se è presente qualche errore di validazione:
-        if(result.hasErrors()) {
-
-            System.out.println(result.getFieldError());
-
-            model.addAttribute("error", "Errore nella modifica dell'utente: inserisci tutti i dati correttamente");
-            return "account/edituser";
-        }
-
-        //se non abbiamo errori salviamo il file immagine nella cartella tramite il meodo creato nel service
         try {
-            String storageFileName = userService.saveImage(userDto.getImg());
+
+            User user = userRepository.findById(id).get();
+            model.addAttribute("utente", user);
             
-            //salviamo l'elemento nel db
-            userService.updateUser(userDto, storageFileName, userDetails.getUsername());
+            if(result.hasErrors()){
+                return "account/editUser";
+            }
 
-            return "redirect:/account";
+            if(!userDto.getImg().isEmpty()){
 
-        }catch(RuntimeException re) {
-            System.out.println("runtime exeption: " + re.getMessage());
-            // model.addAttribute("usernamePresent", "L'Username "+ userDto.getUsername()+" già presente");
-            return "account/edituser";
-        }catch (Exception e) {
-            System.out.println("Exception: " + e.getMessage());
-            return "account/edituser";
+                String userImageName = userService.saveImage(userDto.getImg());
+                userService.updateUser(userDto, userImageName);
+
+            }else {
+                userService.updateUser(userDto, user.getImg());
+
+            }
+
+           return "redirect:/account";
+            
+        } catch (Exception e) {
+            System.out.println("Errore->" + e.getMessage());
+            return "account/editUser";
         }
-
 
     }
+    
     
     
 }
