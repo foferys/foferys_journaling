@@ -19,14 +19,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
 import java.util.*;
 
 import com.foferys_journal.fofejournal.config.CustomOAuth2User;
 import com.foferys_journal.fofejournal.models.Fusa;
 import com.foferys_journal.fofejournal.models.FusaDto;
+import com.foferys_journal.fofejournal.models.JournalingActivity;
 import com.foferys_journal.fofejournal.models.User;
 import com.foferys_journal.fofejournal.services.FusaRepository;
 import com.foferys_journal.fofejournal.services.FusaService;
+import com.foferys_journal.fofejournal.services.JournalingActivityRepository;
 import com.foferys_journal.fofejournal.services.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,22 +46,36 @@ public class FusaController {
     @Autowired
     private FusaService fusaService;
 
+    @Autowired
+    private JournalingActivityRepository journalingActivityRepo;
+
 
     @GetMapping({"", "/"}) //-> indica che questo mapping sarà disponibile all'url /products o /products/
     public String showProductList(Model model, @AuthenticationPrincipal UserDetails userDetails, @AuthenticationPrincipal Object principalUser) {
         
+        CustomOAuth2User oAuth2User = (CustomOAuth2User)principalUser;
+        int userid = oAuth2User.getUser().getId();
+
+        LocalDate inizio = LocalDate.of(2025, 01, 01);
+        LocalDate fine = LocalDate.of(2025, 12, 30);
+        List<JournalingActivity> activities = journalingActivityRepo.findByUserIdAndDateBetween(userid, inizio, fine);
+        model.addAttribute("activities", activities);
+        System.out.println("activities:\n");
+        for (JournalingActivity journalingActivity : activities) {
+            System.out.println(journalingActivity.getEntryCount());
+        }
+
 
         if(principalUser != null && principalUser instanceof CustomOAuth2User) {
-            CustomOAuth2User oAuth2User = (CustomOAuth2User)principalUser;
-            int userid = oAuth2User.getUser().getId();
+            
             List<Fusa> listafusa = fusa_repo.findByUserId(userid);
             model.addAttribute("listafusa", listafusa);
 
         }else if(userDetails != null && principalUser instanceof UserDetails) {
           
             UserDetails userDet = (UserDetails) principalUser;
-            int userid = userRepo.findByUsername(userDet.getUsername()).get().getId();
-            List<Fusa> listafusa = fusa_repo.findByUserId(userid); //-> uso il metodo creato in productRepository per avere i prodotti in base all'id
+            int idUser = userRepo.findByUsername(userDet.getUsername()).get().getId();
+            List<Fusa> listafusa = fusa_repo.findByUserId(idUser); //-> uso il metodo creato in productRepository per avere i prodotti in base all'id
             model.addAttribute("listafusa", listafusa);
         }
 
@@ -134,7 +151,7 @@ public class FusaController {
             Il metodo .get() estrae il valore contenuto, cioè l'oggetto Product, se è presente. 
             l'id ci viene passato dal tasto con th:href="@{/account/modificautente(id=${utente.id})} e qui prendendolo con @RequestParam int id" */
             Fusa fusa = fusa_repo.findById(id).get();
-            model.addAttribute("product",fusa );
+            model.addAttribute("fusa",fusa );
 
             //- oltre a passare l'oggetto da modificare passiamo anche l'oggetto dto con i parametri dell'elemento selezionato,
             // che sarà accessibile alla pagina e servirà per la modifica con la form
@@ -142,14 +159,14 @@ public class FusaController {
             fusaDto.setTitolo(fusa.getTitolo());
             // fusaDto.setCategory(fusa.getCategory());
             fusaDto.setContenuto(fusa.getContenuto());
-            model.addAttribute("productDto", fusaDto);
+            model.addAttribute("fusaDto", fusaDto);
             
         } catch (Exception e) {
             System.out.println("Exception: " + e.getMessage());
-            return "redirect:/products";
+            return "redirect:/fusa";
         }
 
-        return "products/EditProduct";
+        return "fusa/editFusa";
     }
 
 
@@ -159,13 +176,13 @@ public class FusaController {
         try {
     
             Fusa fusa = fusa_repo.findById(id).get();
-            model.addAttribute("product", fusa);
+            model.addAttribute("fusa", fusa);
 
             /*controlliamo se è presente qualche errore di validazione e se è presente rimandiamo su editProduct, e saremo
             * in grado di vedere l'elemento corrente della modifica perché abbiamo il prodotto che passiamo nel model e anche il 
             * productDto */
             if(result.hasErrors()) {
-                return "products/EditProduct";
+                return "fusa/editFusa";
             }
             // verifichiamo se abbiamo l'immagine o no:
             if(!fusaDto.getImageFile().isEmpty()){
@@ -190,12 +207,12 @@ public class FusaController {
                     System.out.println("Exception: " + e.getMessage());
                 }
 
-                //salviamo nel product per poter essere salvato poi nel db
+                //salviamo nel fusa per poter essere salvato poi nel db
                 fusa.setImageFileName(storageFileName);
 
             }
 
-            //salviamo nel db dai dati del submit che si trovano nel productDto
+            //salviamo nel db dai dati del submit che si trovano nel fusaDto
             fusa.setTitolo(fusaDto.getTitolo());
             // fusa.setCategory(fusaDto.getCategory());
             fusa.setContenuto(fusaDto.getContenuto());
@@ -203,16 +220,23 @@ public class FusaController {
             
         } catch (Exception e) {
             System.out.println("Exception: " + e.getMessage());
-            return "redirect:/products";
+            return "redirect:/fusa";
         }
 
-        return "redirect:/products";
+        return "redirect:/fusa";
     }
     
 
     //delete
+    /*
+     * Per passare l'utente autenticato al service senza usare direttamente SecurityContextHolder, un metodo pulito è sfruttare 
+     * l'annotazione @AuthenticationPrincipal nel controller per ottenere l'utente autenticato e poi passare tale utente o 
+     * semplicemente il suo ID al service.
+     */
     @GetMapping("/delete")
-    public String deleteProduct(@RequestParam int id) {
+    public String deleteProduct(@RequestParam int id, @AuthenticationPrincipal CustomOAuth2User oauthUser) {
+
+        User user = oauthUser.getUser();
 
         try {
             Fusa fusa = fusa_repo.findById(id).get();
@@ -225,13 +249,14 @@ public class FusaController {
                 System.out.println("Exception: " + e.getMessage());
             }
 
-            fusa_repo.delete(fusa);
+           fusaService.delete(fusa, user.getId());
+
             
         } catch (Exception e) {
             System.out.println("Exception: " + e.getMessage());
         }
 
-        return "redirect:/products";
+        return "redirect:/fusa";
         
     }
     

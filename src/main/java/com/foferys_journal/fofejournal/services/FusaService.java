@@ -7,7 +7,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
 import java.util.Date;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -17,8 +20,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.foferys_journal.fofejournal.models.Fusa;
 import com.foferys_journal.fofejournal.models.FusaDto;
+import com.foferys_journal.fofejournal.models.JournalingActivity;
 import com.foferys_journal.fofejournal.models.User;
 import com.foferys_journal.fofejournal.models.builder.FusaBuilder;
+
+import jakarta.transaction.Transactional;
 
 
 // La classe di servizio gestisce la logica di business e interagisce con il repository.
@@ -29,6 +35,8 @@ public class FusaService {
     private FusaRepository fusaRepository; 
     @Autowired
     private UserRepository uRepo;
+    @Autowired
+    private JournalingActivityRepository journalingActivityRepo;
     
 
     //costruttore se non uso @component o @service ecc alla classe che voglio ignettare 
@@ -77,6 +85,7 @@ public class FusaService {
         return storageFileName;
     }
 
+    @Transactional
     public void saveProduct(FusaDto fusaDto, String imageFileName, String username) {
 
         User user = uRepo.findByUsername(username).get();
@@ -84,7 +93,38 @@ public class FusaService {
         //accediamo direttamente al metodo statico del builder passandogli i dati di cui ha bisogno
         Fusa fusa = FusaBuilder.toEntity(fusaDto, user, imageFileName);
 
+        LocalDate today = LocalDate.now();
+        Optional<JournalingActivity> existingAcativity = journalingActivityRepo.findByUserIdAndDate(user.getId(), today);
+
+        JournalingActivity activity;
+        if(existingAcativity.isPresent()) {
+            activity = existingAcativity.get();
+            activity.setEntryCount(activity.getEntryCount() + 1);
+        }else {
+            activity = new JournalingActivity();
+            activity.setUserId(user.getId());
+            activity.setDate(today);
+            activity.setEntryCount(1);
+        }
+
+        journalingActivityRepo.save(activity);
+
         fusaRepository.save(fusa);
+    }
+
+    @Transactional
+    public boolean delete(Fusa fusa, int user_id){
+        try {
+            fusaRepository.delete(fusa);
+            JournalingActivity journalingActivity = journalingActivityRepo.findByUserId(user_id);
+            System.out.println("user id: " + user_id + " and count="+journalingActivity.getEntryCount());
+            journalingActivity.setEntryCount(journalingActivity.getEntryCount() -1);
+            journalingActivityRepo.save(journalingActivity);
+            return true;
+        } catch (Exception e) {
+            System.out.println("errore nella cancellazione della nota: " + e.getMessage());
+            return false;
+        }
     }
 
 
