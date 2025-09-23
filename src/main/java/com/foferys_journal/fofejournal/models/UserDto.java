@@ -19,6 +19,8 @@ public class UserDto {
 	private MultipartFile img;
 
     private String oldPassword;
+    
+    @NotEmpty(message = "The password is required")
 	private String confermaPass;
 
 

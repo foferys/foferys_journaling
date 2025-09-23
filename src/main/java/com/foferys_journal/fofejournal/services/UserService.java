@@ -91,9 +91,9 @@ public class UserService {
     public User saveUser(UserDto userDto, String imageFileName) {
 
         // fare controllo su esistenza username 
-        if(userRepository.findByUsername(userDto.getUsername()).isPresent()){
-            throw new RuntimeException("Username gia presente: " + userDto.getUsername());
-        }
+        // if(userRepository.findByUsername(userDto.getUsername()).isPresent()){
+        //     throw new RuntimeException("Username gia presente: " + userDto.getUsername());
+        // }
 
         User insertUser = UserDtoBuilder.UserFromDtoToEntity(userDto, imageFileName, passwordEncoder.encode(userDto.getPassword()));
 
@@ -102,10 +102,10 @@ public class UserService {
 
 
     @Transactional
-    public User updateUser(UserDto userDto, String imageFileName, String username) {
+    public User updateUser(UserDto userDto, String imageFileName) {
 
-        User user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new RuntimeException("Utente non trovato: " + username));
+        User user = userRepository.findByUsername(userDto.getUsername())
+            .orElseThrow(() -> new RuntimeException("Utente non trovato: " + userDto.getUsername()));
 
         String passwConf = userDto.getConfermaPass();
 		System.out.println("la password scritta è "+passwConf);
@@ -113,17 +113,16 @@ public class UserService {
 
         if (passwordEncoder.matches(passwConf, user.getPassword())) {
             
-            // fare controllo su esistenza username 
-            if(userRepository.findByUsername(userDto.getUsername()).isPresent()){
-                throw new RuntimeException("Username gia presente: " + userDto.getUsername());
+            // Se la password non corrisponde → errore
+            if (!passwordEncoder.matches(passwConf, user.getPassword())) {
+                throw new RuntimeException("Password di conferma non corretta");
             }
     
         }
-        
+
         User insertUser = UserDtoBuilder.UserFromDtoToEntity(userDto, imageFileName, passwordEncoder.encode(userDto.getPassword()));
         return userRepository.save(insertUser);
-
-
+        
 
     }
 

@@ -17,6 +17,8 @@
                     <div class="accountPhotoCont">
                         <div class="accountImgCont">
 
+                            <p th:if="${errorMessage}" th:text="${errorMessage}"></p>
+
                             <a th:if="${utente.img != null and utente.img.matches('^(http|https)://.*')}" th:href="${utente.img}">
 
                                 <img class="img-fluid rounded-3 accountPhoto" th:src="${utente.img}" alt="User Image">
@@ -62,7 +64,7 @@
                             <div class="d-flex justify-content-start rounded-3 p-2 mb-2 bg-body-secondary">
                                 <div class="mx-3">
                                     <p class="small text-muted mb-1">Conferma Password</p>
-                                        <input required type="password" th:field="*{confermaPass}" class="form-control"/>
+                                        <input type="password" th:field="*{confermaPass}" class="form-control"/>
                                         <p th:if="${#fields.hasErrors('confermaPass')}" th:errorclass="text-danger" th:errors="*{confermaPass}"></p>
                                 </div>
                             </div>
