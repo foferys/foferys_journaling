@@ -50,33 +50,43 @@ public class FusaController {
     private JournalingActivityRepository journalingActivityRepo;
 
 
-    @GetMapping({"", "/"}) //-> indica che questo mapping sarà disponibile all'url /products o /products/
+    @GetMapping({"", "/"}) //-> indica che questo mapping sarà disponibile all'url /fusa o /fusa/
     public String showProductList(Model model, @AuthenticationPrincipal UserDetails userDetails, @AuthenticationPrincipal Object principalUser) {
         
-        CustomOAuth2User oAuth2User = (CustomOAuth2User)principalUser;
-        int userid = oAuth2User.getUser().getId();
-
-        LocalDate inizio = LocalDate.of(2025, 01, 01);
-        LocalDate fine = LocalDate.of(2025, 12, 30);
-        List<JournalingActivity> activities = journalingActivityRepo.findByUserIdAndDateBetween(userid, inizio, fine);
-        model.addAttribute("activities", activities);
-        System.out.println("activities:\n");
-        for (JournalingActivity journalingActivity : activities) {
-            System.out.println(journalingActivity.getEntryCount());
-        }
-
-
+        
+        // if gestisce il tipo diverso di accesso da git/google con oauth oppure normale
         if(principalUser != null && principalUser instanceof CustomOAuth2User) {
+
+            CustomOAuth2User oAuth2User = (CustomOAuth2User)principalUser;
+            int userid = oAuth2User.getUser().getId();
+    
+            LocalDate inizio = LocalDate.of(2025, 01, 01);
+            LocalDate fine = LocalDate.of(2025, 12, 30);
+            List<JournalingActivity> activities = journalingActivityRepo.findByUserIdAndDateBetween(userid, inizio, fine);
+            model.addAttribute("activities", activities);
+            System.out.println("activities:\n");
+            for (JournalingActivity journalingActivity : activities) {
+                System.out.println(journalingActivity.getEntryCount());
+            }
             
             List<Fusa> listafusa = fusa_repo.findByUserId(userid);
             model.addAttribute("listafusa", listafusa);
 
         }else if(userDetails != null && principalUser instanceof UserDetails) {
-          
+
             UserDetails userDet = (UserDetails) principalUser;
             int idUser = userRepo.findByUsername(userDet.getUsername()).get().getId();
-            List<Fusa> listafusa = fusa_repo.findByUserId(idUser); //-> uso il metodo creato in productRepository per avere i prodotti in base all'id
+            List<Fusa> listafusa = fusa_repo.findByUserId(idUser); //-> uso il metodo creato in fusaRepository per avere i prodotti in base all'id
             model.addAttribute("listafusa", listafusa);
+
+            LocalDate inizio = LocalDate.of(2025, 01, 01);
+            LocalDate fine = LocalDate.of(2025, 12, 30);
+            List<JournalingActivity> activities = journalingActivityRepo.findByUserIdAndDateBetween(idUser, inizio, fine);
+            model.addAttribute("activities", activities);
+            System.out.println("activities:\n");
+            for (JournalingActivity journalingActivity : activities) {
+                System.out.println(journalingActivity.getEntryCount());
+            }
         }
 
 
@@ -96,11 +106,11 @@ public class FusaController {
     public String createProduct(@Valid @ModelAttribute FusaDto fusaDto, BindingResult result, @AuthenticationPrincipal Object principalUser, @AuthenticationPrincipal UserDetails userDetails) {
         /*abbiamo tra i paramentri l'oggetto passato dalla form, e l'annotation @Valid serve a validare
         * e per vedere se ci sono errori di validazione dobbiamo aggiungere tra il parametro BindingResult che controlla se
-        * ci sono errori con i dati di productDto ---
-        * --- In ProductDto per il campo imageFile non abbiamo una validazione gia impostata come con gli altri parametri, ma
-        * è importante che sia presente, quindi possiamo scriverla nel ProductService.java a mano:*/
-        // if(productDto.getImageFile().isEmpty()){ -> per farlo direttamnete qua ma meglio nel service
-        //     result.addError(new FieldError("productDto","imageFile", "the image file is required"));
+        * ci sono errori con i dati di fusaDto ---
+        * --- In FusaDto per il campo imageFile non abbiamo una validazione gia impostata come con gli altri parametri, ma
+        * è importante che sia presente, quindi possiamo scriverla nel FusaService.java a mano:*/
+        // if(fusaDto.getImageFile().isEmpty()){ -> per farlo direttamnete qua ma meglio nel service
+        //     result.addError(new FieldError("fusaDto","imageFile", "the image file is required"));
         // }
         
         //uso questo con service al posto di questo appena sopra perché ho impostato li un metodo per il controllo invece di farlo qui
@@ -125,11 +135,11 @@ public class FusaController {
                 CustomOAuth2User oauthUser = (CustomOAuth2User) principalUser;
                 User user = oauthUser.getUser(); // Recupera l'oggetto User direttamente dal CustomOAuth2User
 
-                fusaService.saveProduct(fusaDto, storageFileName, user.getUsername());
+                fusaService.saveFusa(fusaDto, storageFileName, user.getUsername());
        
             }
             if (userDetails != null) {
-                fusaService.saveProduct(fusaDto, storageFileName, userDetails.getUsername());
+                fusaService.saveFusa(fusaDto, storageFileName, userDetails.getUsername());
             }
 
         } catch (Exception e) {
@@ -148,7 +158,7 @@ public class FusaController {
         try {
             
             /* findById(id) -> cerca un'entità nel database utilizzando il suo id; 
-            Il metodo .get() estrae il valore contenuto, cioè l'oggetto Product, se è presente. 
+            Il metodo .get() estrae il valore contenuto, cioè l'oggetto Fusa, se è presente. 
             l'id ci viene passato dal tasto con th:href="@{/account/modificautente(id=${utente.id})} e qui prendendolo con @RequestParam int id" */
             Fusa fusa = fusa_repo.findById(id).get();
             model.addAttribute("fusa",fusa );
@@ -178,9 +188,9 @@ public class FusaController {
             Fusa fusa = fusa_repo.findById(id).get();
             model.addAttribute("fusa", fusa);
 
-            /*controlliamo se è presente qualche errore di validazione e se è presente rimandiamo su editProduct, e saremo
+            /*controlliamo se è presente qualche errore di validazione e se è presente rimandiamo su editFusa, e saremo
             * in grado di vedere l'elemento corrente della modifica perché abbiamo il prodotto che passiamo nel model e anche il 
-            * productDto */
+            * fusaDto */
             if(result.hasErrors()) {
                 return "fusa/editFusa";
             }

@@ -40,9 +40,9 @@ public class FusaService {
     
 
     //costruttore se non uso @component o @service ecc alla classe che voglio ignettare 
-    // public ProductService(ProductsRepository productsRepository, UserRepository userRepository) {
+    // public fusaService(fusasRepository fusasRepository, UserRepository userRepository) {
 
-    //     this.pRepo = productsRepository;
+    //     this.pRepo = fusasRepository;
     //     this.uRepo = userRepository;
 
     // }
@@ -50,10 +50,10 @@ public class FusaService {
 
     
     public void validateImageFile(FusaDto fusaDto, BindingResult result) {
-        /* --- In ProductDto per il campo imageFile non abbiamo una validazione gia impostata come con gli altri parametri, ma
+        /* --- In fusaDto per il campo imageFile non abbiamo una validazione gia impostata come con gli altri parametri, ma
         * è importante che sia presente, quindi possiamo scriverla qui a mano:*/
         if (fusaDto.getImageFile().isEmpty()) {
-            result.addError(new FieldError("productDto", "imageFile", "the image file is required"));
+            result.addError(new FieldError("fusaDto", "imageFile", "the image file is required"));
         }
     }
 
@@ -86,7 +86,7 @@ public class FusaService {
     }
 
     @Transactional
-    public void saveProduct(FusaDto fusaDto, String imageFileName, String username) {
+    public void saveFusa(FusaDto fusaDto, String imageFileName, String username) {
 
         User user = uRepo.findByUsername(username).get();
 

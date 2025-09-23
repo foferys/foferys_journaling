@@ -100,54 +100,38 @@ public class AccountController {
     }
     
     @PostMapping("/modificautente")
-    public String modifica(Model model, @RequestParam int id, @Valid @ModelAttribute UserDto userDto, BindingResult result) {
-    
-        try {
+    public String modifica(Model model, @RequestParam int id, @Valid @ModelAttribute UserDto userDto, BindingResult result, @AuthenticationPrincipal UserDetails userDetails) {
 
-            User user = userRepository.findById(id).get();
-            model.addAttribute("utente", user);
-            
-            if(result.hasErrors()){
-                return "account/edituser";
-            }
+        userService.validateImageFile(userDto, result);
 
-            if(!userDto.getImg().isEmpty()){
+        //controlliamo se è presente qualche errore di validazione:
+        if(result.hasErrors()) {
 
-                String uploadDir = "src/main/resources/static/images/";
-                Path oldImagePath =  Paths.get(uploadDir, user.getImg());
+            System.out.println(result.getFieldError());
 
-                try {
-                    Files.delete(oldImagePath);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                //salva immagine
-                MultipartFile image = userDto.getImg();
-                String userImageName = image.getOriginalFilename();
-
-                try(InputStream inputStream = image.getInputStream()) {
-                    Files.copy(inputStream,Paths.get(uploadDir + userImageName), StandardCopyOption.REPLACE_EXISTING);
-                } catch (Exception e) {
-                    System.out.println(e.getCause());
-                }
-
-                user.setImg(userImageName);
-            }
-
-            //salviamo gli altri elementi nel product e salviamo nel db
-            user.setNome(userDto.getNome());
-            user.setUsername(userDto.getUsername());
-            user.setPassword(new BCryptPasswordEncoder().encode(userDto.getPassword()));
-
-            userRepository.save(user);
-            
-        } catch (Exception e) {
-            System.out.println("Errore->" + e.getMessage());
+            model.addAttribute("error", "Errore nella modifica dell'utente: inserisci tutti i dati correttamente");
             return "account/edituser";
         }
 
-        return "redirect:/account";
+        //se non abbiamo errori salviamo il file immagine nella cartella tramite il meodo creato nel service
+        try {
+            String storageFileName = userService.saveImage(userDto.getImg());
+            
+            //salviamo l'elemento nel db
+            userService.updateUser(userDto, storageFileName, userDetails.getUsername());
+
+            return "redirect:/account";
+
+        }catch(RuntimeException re) {
+            System.out.println("runtime exeption: " + re.getMessage());
+            // model.addAttribute("usernamePresent", "L'Username "+ userDto.getUsername()+" già presente");
+            return "account/edituser";
+        }catch (Exception e) {
+            System.out.println("Exception: " + e.getMessage());
+            return "account/edituser";
+        }
+
+
     }
     
     
