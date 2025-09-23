@@ -18,6 +18,12 @@ public class UserDto {
 
 	private MultipartFile img;
 
+    private String oldPassword;
+	private String confermaPass;
+
+
+
+
 
     public String getNome() {
         return nome;
@@ -49,6 +55,22 @@ public class UserDto {
 
     public void setImg(MultipartFile img) {
         this.img = img;
+    }
+
+    public String getOldPassword() {
+        return oldPassword;
+    }
+
+    public void setOldPassword(String oldPassword) {
+        this.oldPassword = oldPassword;
+    }
+
+    public String getConfermaPass() {
+        return confermaPass;
+    }
+
+    public void setConfermaPass(String confermaPass) {
+        this.confermaPass = confermaPass;
     }
 
 

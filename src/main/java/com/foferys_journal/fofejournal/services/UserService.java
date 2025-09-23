@@ -101,6 +101,33 @@ public class UserService {
     }
 
 
+    @Transactional
+    public User updateUser(UserDto userDto, String imageFileName, String username) {
+
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("Utente non trovato: " + username));
+
+        String passwConf = userDto.getConfermaPass();
+		System.out.println("la password scritta è "+passwConf);
+		System.out.println("la password scritta è uguale a quella hashata? "+ passwordEncoder.matches(passwConf, user.getPassword()));
+
+        if (passwordEncoder.matches(passwConf, user.getPassword())) {
+            
+            // fare controllo su esistenza username 
+            if(userRepository.findByUsername(userDto.getUsername()).isPresent()){
+                throw new RuntimeException("Username gia presente: " + userDto.getUsername());
+            }
+    
+            insertUser = UserDtoBuilder.UserFromDtoToEntity(userDto, imageFileName, passwordEncoder.encode(userDto.getPassword()));
+            return userRepository.save(insertUser);
+        }
+
+
+        return null;
+
+    }
+
+
     public User getUserByUsername(String username) {
 
         User user = userRepository.findByUsername(username).get();
