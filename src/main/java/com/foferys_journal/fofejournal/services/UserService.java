@@ -118,12 +118,12 @@ public class UserService {
                 throw new RuntimeException("Username gia presente: " + userDto.getUsername());
             }
     
-            insertUser = UserDtoBuilder.UserFromDtoToEntity(userDto, imageFileName, passwordEncoder.encode(userDto.getPassword()));
-            return userRepository.save(insertUser);
         }
+        
+        User insertUser = UserDtoBuilder.UserFromDtoToEntity(userDto, imageFileName, passwordEncoder.encode(userDto.getPassword()));
+        return userRepository.save(insertUser);
 
 
-        return null;
 
     }
 
