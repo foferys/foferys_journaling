@@ -1,8 +1,5 @@
 package com.foferys_journal.fofejournal.models.builder;
 
-
-import java.util.Date;
-
 import com.foferys_journal.fofejournal.models.Fusa;
 import com.foferys_journal.fofejournal.models.FusaDto;
 import com.foferys_journal.fofejournal.models.User;

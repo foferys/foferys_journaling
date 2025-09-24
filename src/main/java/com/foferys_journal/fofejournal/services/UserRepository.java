@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
-
 import com.foferys_journal.fofejournal.models.User;
+
 
 
 
@@ -21,6 +21,11 @@ public interface UserRepository extends JpaRepository<User, Integer>{
     //Se il valore è assente → è vuoto.
     //con Optional possiamo usare il metodo isPresent() quando chiamiamo questo metodo per cercare l'utente
     Optional<User> findByUsername(String username);
+
+
+  
+
+    
     
 
 }

@@ -1,35 +1,24 @@
 package com.foferys_journal.fofejournal.controller;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-
 import com.foferys_journal.fofejournal.config.CustomOAuth2User;
+import com.foferys_journal.fofejournal.exceptions.PasswordMismatchException;
 import com.foferys_journal.fofejournal.models.User;
 import com.foferys_journal.fofejournal.models.UserDto;
-import com.foferys_journal.fofejournal.models.builder.UserDtoBuilder;
 import com.foferys_journal.fofejournal.services.UserRepository;
 import com.foferys_journal.fofejournal.services.UserService;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.*;
-import java.util.Optional;
-
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.PostMapping;
 
 
@@ -42,8 +31,6 @@ public class AccountController {
 
     @Autowired
     private UserService userService;
-    @Autowired
-    private UserDtoBuilder userDtoBuilder;
 
 
 
@@ -105,33 +92,44 @@ public class AccountController {
 
     @PostMapping("/modificautente")
     public String modifica(Model model, @RequestParam int id, @Valid @ModelAttribute UserDto userDto, BindingResult result) {
-    
+
+        
 
         try {
-
-            User user = userRepository.findById(id).get();
-            model.addAttribute("utente", user);
             
             if(result.hasErrors()){
+                System.out.println("SONO NEL hasErrors");
+                result.getAllErrors().forEach(error -> {
+                    System.out.println(error.toString()); // stampa l’oggetto errore
+                    System.out.println("Default message: " + error.getDefaultMessage()); // messaggio leggibile
+                    System.out.println("Object name: " + error.getObjectName()); // nome oggetto/field
+                });
+
+                //sarebbe meglio non usare direttamente il repository ma il service
+                model.addAttribute("utente", userRepository.findById(id).get());
+
                 return "account/editUser";
             }
 
-            if(!userDto.getImg().isEmpty()){
 
-                String userImageName = userService.saveImage(userDto.getImg());
-                userService.updateUser(userDto, userImageName);
+            // Salva l'utente con l'immagine (se nuova), password (se nuova) o data di nascita (se nuova)
+            userService.updateUser(id, userDto);
 
-            }else {
-                userService.updateUser(userDto, user.getImg());
-
-            }
-
+            System.out.println("Utente salvato con successo.");
+  
            return "redirect:/account";
             
+        }catch(PasswordMismatchException pswe) { // -> PasswordMismatchException è la classe creata da me per gestire questo errore specifico (passato qui dal service - metodo updateUser)
+
+            model.addAttribute("pswerror", pswe.getMessage());
+            model.addAttribute("utente", userRepository.findById(id).get()); // per riempire il form
+            return "account/editUser"; // ritorna alla pagina di modifica con messaggio err
+
         } catch (Exception e) {
             System.out.println("Errore->" + e.getMessage());
             return "account/editUser";
         }
+
 
     }
     
