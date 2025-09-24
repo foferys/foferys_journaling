@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotEmpty;
 
 public class UserDto {
 
+	private int id;
 
     private String nome;
 
@@ -18,6 +19,17 @@ public class UserDto {
 
 	private MultipartFile img;
 
+
+
+
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getNome() {
         return nome;
@@ -50,6 +62,8 @@ public class UserDto {
     public void setImg(MultipartFile img) {
         this.img = img;
     }
+
+
 
 
     

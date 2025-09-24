@@ -31,9 +31,11 @@ public class Fusa {
     !!!Quando chiami il metodo setUser(user);, JPA si occupa di impostare l'ID dell'utente nella colonna user_id nella tabella product durante il salvataggio.
     
     Differenza tra LAZY e EAGER
-    LAZY (Pigro): L'entità correlata viene caricata quando è necessaria (cioè quando accedi esplicitamente a essa nel codice). Questo comportamento evita il caricamento di dati inutili e migliora le prestazioni.
+    LAZY (Pigro): L'entità correlata viene caricata quando è necessaria (cioè quando accedi esplicitamente a essa nel codice). 
+    Questo comportamento evita il caricamento di dati inutili e migliora le prestazioni.
 
-    EAGER (Avido): L'entità correlata viene caricata immediatamente. È utile quando sai che utilizzerai l'entità correlata ogni volta che accedi all'entità principale.
+    EAGER (Avido): L'entità correlata viene caricata immediatamente. È utile quando sai che utilizzerai l'entità correlata ogni 
+    volta che accedi all'entità principale.
 
     Esempio pratico di FetchType.LAZY in azione:
     Product product = productRepository.findById(1L).get();

@@ -7,11 +7,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import javax.management.RuntimeErrorException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +17,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.foferys_journal.fofejournal.exceptions.PasswordMismatchException;
 import com.foferys_journal.fofejournal.models.User;
 import com.foferys_journal.fofejournal.models.UserDto;
 import com.foferys_journal.fofejournal.models.builder.UserDtoBuilder;
@@ -83,6 +82,33 @@ public class UserService {
         } catch (Exception e) {
             System.out.println("errore-> " + e.getMessage());
         }
+        
+
+        return userImageName;
+    }
+
+    public String checkandsaveimage(MultipartFile image, User oldUser) throws IOException {
+
+
+        String uploadDir = "src/main/resources/static/images/";
+        Path oldImagePath =  Paths.get(uploadDir, oldUser.getImg());
+
+        try {
+            Files.delete(oldImagePath);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //salva immagine
+        String userImageName = image.getOriginalFilename();
+
+        try(InputStream inputStream = image.getInputStream()) {
+            Files.copy(inputStream,Paths.get(uploadDir + userImageName), StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception e) {
+            System.out.println(e.getCause());
+        }
+
+        oldUser.setImg(userImageName);
 
         return userImageName;
     }
@@ -91,14 +117,54 @@ public class UserService {
     public User saveUser(UserDto userDto, String imageFileName) {
 
         // fare controllo su esistenza username 
-        if(userRepository.findByUsername(userDto.getUsername()).isPresent()){
-            throw new RuntimeException("Username gia presente: " + userDto.getUsername());
-        }
+        // if(userRepository.findByUsername(userDto.getUsername()).isPresent()){
+        //     throw new RuntimeException("Username gia presente: " + userDto.getUsername());
+        // }
 
         User insertUser = UserDtoBuilder.UserFromDtoToEntity(userDto, imageFileName, passwordEncoder.encode(userDto.getPassword()));
 
         return userRepository.save(insertUser);
     }
+
+
+    public User updateUser(int id, UserDto userDto) throws Exception {
+
+        Optional<User> optionalUser = userRepository.findById(id);
+        if (!optionalUser.isPresent()) {
+            throw new Exception("Utente non trovato");
+        }
+        User existingUser = optionalUser.get();
+
+        existingUser.setNome(userDto.getNome());    
+        existingUser.setUsername(userDto.getUsername());
+
+        if(userDto.getPassword() != null && !userDto.getPassword().isEmpty()) {
+            if(!passwordEncoder.matches(userDto.getPassword(), existingUser.getPassword())) {
+
+                System.out.println("NON corrispondono le pass");
+                // PasswordMismatchException è una classe creata da me che estende RuntimeException per gestire questo errore specifico poi mandato
+                // alla view tramite controller
+                throw new PasswordMismatchException("La password inserita non è corretta");
+
+            }
+        }
+
+        System.out.println("corrispondono le pass");
+
+        //in caso di riassegnazione della pass
+        // existingUser.setPassword(new BCryptPasswordEncoder().encode(userDto.getPassword()));
+
+        if(userDto.getImg() != null && !userDto.getImg().isEmpty()) {
+            String storageFileName = saveImage(userDto.getImg());
+            existingUser.setImg(storageFileName);
+        }
+
+        return userRepository.save(existingUser);
+
+
+    }
+
+
 
 
     public User getUserByUsername(String username) {

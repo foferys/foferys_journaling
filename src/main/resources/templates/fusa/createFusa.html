@@ -16,19 +16,19 @@
                 <h2 class="text-center mb-5">Nuova fusa 🐱</h2>
 
                 <!--Quando utilizzi th:object in Thymeleaf, il modulo è legato all'oggetto di modello specificato (in questo caso, 
-                productDto). Quando il modulo viene inviato, i valori inseriti negli input del modulo vengono automaticamente mappati 
-                sulle proprietà corrispondenti dell'oggetto productDto.
+                fusaDto). Quando il modulo viene inviato, i valori inseriti negli input del modulo vengono automaticamente mappati 
+                sulle proprietà corrispondenti dell'oggetto fusaDto.
                 Ecco un riepilogo di come funziona il processo:
 
-                Binding dei Dati: Thymeleaf lega gli input del modulo alle proprietà dell'oggetto productDto. Per esempio, se hai un 
-                campo di input con th:field="*{name}", Thymeleaf si aspetta che productDto abbia una proprietà chiamata name.
+                Binding dei Dati: Thymeleaf lega gli input del modulo alle proprietà dell'oggetto fusaDto. Per esempio, se hai un 
+                campo di input con th:field="*{name}", Thymeleaf si aspetta che fusaDto abbia una proprietà chiamata name.
 
                 Invio del Modulo: Quando l'utente compila il modulo e lo invia, i dati inseriti vengono inviati al server come parte 
                 della richiesta HTTP.
 
                 Binding sul Server: Se utilizzi un framework come Spring MVC, i dati della richiesta vengono automaticamente associati 
-                ai campi dell'oggetto productDto durante la deserializzazione della richiesta. Quindi, quando la richiesta viene 
-                elaborata dal controller, productDto conterrà i valori inseriti nel modulo -->
+                ai campi dell'oggetto fusaDto durante la deserializzazione della richiesta. Quindi, quando la richiesta viene 
+                elaborata dal controller, fusaDto conterrà i valori inseriti nel modulo -->
                 <form method="post" enctype="multipart/form-data"  th:object="${fusaDto}" >
                  
                     <div class="form-floating mb-3">
@@ -43,7 +43,7 @@
                     <!-- <div class="row mb-3">
                         <label class="col-sm-4 col-form-label">Category</label>
                         <div class="col-sm-8">
-                            <select class="form-select" th:field="${productDto.category}">
+                            <select class="form-select" th:field="${fusaDto.category}">
                                 <option value="Other">Other</option>
                                 <option value="Phones">Phones</option>
                                 <option value="Computers">Computers</option>
@@ -51,7 +51,7 @@
                                 <option value="Printers">Printers</option>
                                 <option value="Cameras">Cameras</option>
                             </select>
-                            <p th:if="${#fields.hasErrors('category')}" th:errorclass="text-danger" th:errors="${productDto.category}"></p>
+                            <p th:if="${#fields.hasErrors('category')}" th:errorclass="text-danger" th:errors="${fusaDto.category}"></p>
                         </div>
                     </div> -->
 
