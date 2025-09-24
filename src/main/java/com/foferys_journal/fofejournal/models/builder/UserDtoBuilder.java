@@ -22,6 +22,7 @@ public class UserDtoBuilder {
         u.setImg(imageFileName);
 		return u;
 	}
+
 	
 	public static UserDto UserFromEntityToDto (User user) {
 		

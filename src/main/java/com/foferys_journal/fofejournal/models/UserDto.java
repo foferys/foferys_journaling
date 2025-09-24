@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotEmpty;
 
 public class UserDto {
 
+	private int id;
 
     private String nome;
 
@@ -18,14 +19,17 @@ public class UserDto {
 
 	private MultipartFile img;
 
-    private String oldPassword;
-    
-    @NotEmpty(message = "The password is required")
-	private String confermaPass;
 
 
 
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getNome() {
         return nome;
@@ -59,21 +63,7 @@ public class UserDto {
         this.img = img;
     }
 
-    public String getOldPassword() {
-        return oldPassword;
-    }
 
-    public void setOldPassword(String oldPassword) {
-        this.oldPassword = oldPassword;
-    }
-
-    public String getConfermaPass() {
-        return confermaPass;
-    }
-
-    public void setConfermaPass(String confermaPass) {
-        this.confermaPass = confermaPass;
-    }
 
 
     
