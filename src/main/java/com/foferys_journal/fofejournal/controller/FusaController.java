@@ -18,6 +18,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.*;
+
 import com.foferys_journal.fofejournal.config.CustomOAuth2User;
 import com.foferys_journal.fofejournal.models.Fusa;
 import com.foferys_journal.fofejournal.models.FusaDto;
@@ -26,7 +27,7 @@ import com.foferys_journal.fofejournal.models.User;
 import com.foferys_journal.fofejournal.services.FusaRepository;
 import com.foferys_journal.fofejournal.services.FusaService;
 import com.foferys_journal.fofejournal.services.JournalingActivityRepository;
-import com.foferys_journal.fofejournal.services.UserRepository;
+import com.foferys_journal.fofejournal.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 
@@ -38,13 +39,14 @@ public class FusaController {
     @Autowired
     private FusaRepository fusa_repo;
     @Autowired
-    private UserRepository userRepo;
-    @Autowired
     private FusaService fusaService;
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private JournalingActivityRepository journalingActivityRepo;
 
+   
 
     @GetMapping({"", "/"}) //-> indica che questo mapping sarà disponibile all'url /fusa o /fusa/
     public String showProductList(Model model, @AuthenticationPrincipal UserDetails userDetails, @AuthenticationPrincipal Object principalUser) {
@@ -56,14 +58,20 @@ public class FusaController {
             CustomOAuth2User oAuth2User = (CustomOAuth2User)principalUser;
             int userid = oAuth2User.getUser().getId();
     
+            // activities di journaling
             LocalDate inizio = LocalDate.of(2025, 01, 01);
             LocalDate fine = LocalDate.of(2025, 12, 30);
             List<JournalingActivity> activities = journalingActivityRepo.findByUserIdAndDateBetween(userid, inizio, fine);
             model.addAttribute("activities", activities);
+
+            
+            
+            // --stampa del numero di activities ---
             System.out.println("activities:\n");
             for (JournalingActivity journalingActivity : activities) {
                 System.out.println(journalingActivity.getEntryCount());
             }
+            // --stampa del numero di activities ---
             
             List<Fusa> listafusa = fusa_repo.findByUserId(userid);
             model.addAttribute("listafusa", listafusa);
@@ -71,7 +79,7 @@ public class FusaController {
         }else if(userDetails != null && principalUser instanceof UserDetails) {
 
             UserDetails userDet = (UserDetails) principalUser;
-            int idUser = userRepo.findByUsername(userDet.getUsername()).get().getId();
+            int idUser = userService.getUserByUsername(userDet.getUsername()).getId();
             List<Fusa> listafusa = fusa_repo.findByUserId(idUser); //-> uso il metodo creato in fusaRepository per avere i prodotti in base all'id
             model.addAttribute("listafusa", listafusa);
 
@@ -84,6 +92,8 @@ public class FusaController {
                 System.out.println(journalingActivity.getEntryCount());
             }
         }
+
+
 
 
         return "fusa/index"; //--> file nella cartella templates>fusa>index.html
@@ -109,7 +119,7 @@ public class FusaController {
         //     result.addError(new FieldError("fusaDto","imageFile", "the image file is required"));
         // }
         
-        //uso questo con service al posto di questo appena sopra perché ho impostato li un metodo per il controllo invece di farlo qui
+
         fusaService.validateImageFile(fusaDto, result);
 
         //controlliamo se è presente qualche errore di validazione:
@@ -240,9 +250,18 @@ public class FusaController {
      * semplicemente il suo ID al service.
      */
     @GetMapping("/delete")
-    public String deleteProduct(@RequestParam int id, @AuthenticationPrincipal CustomOAuth2User oauthUser) {
+    public String deleteProduct(@RequestParam int id, @AuthenticationPrincipal CustomOAuth2User oauthUser, @AuthenticationPrincipal UserDetails userDetails) {
 
-        User user = oauthUser.getUser();
+
+        User user;
+
+        if(oauthUser !=null) {
+
+            user = oauthUser.getUser();
+        }else {
+            user = userService.getUserByUsername(userDetails.getUsername());
+        }
+
 
         try {
             Fusa fusa = fusa_repo.findById(id).get();
@@ -266,9 +285,6 @@ public class FusaController {
         
     }
     
-
-
-
 
 
 }

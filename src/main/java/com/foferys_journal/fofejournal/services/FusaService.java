@@ -112,11 +112,17 @@ public class FusaService {
     public boolean delete(Fusa fusa, int user_id){
         try {
             fusaRepository.delete(fusa);
+
             JournalingActivity journalingActivity = journalingActivityRepo.findByUserId(user_id);
             System.out.println("user id: " + user_id + " and count="+journalingActivity.getEntryCount());
-            journalingActivity.setEntryCount(journalingActivity.getEntryCount() -1);
+            if(journalingActivity.getEntryCount() != 0) {
+                
+                journalingActivity.setEntryCount(journalingActivity.getEntryCount() -1);
+            }
             journalingActivityRepo.save(journalingActivity);
+
             return true;
+
         } catch (Exception e) {
             System.out.println("errore nella cancellazione della nota: " + e.getMessage());
             return false;

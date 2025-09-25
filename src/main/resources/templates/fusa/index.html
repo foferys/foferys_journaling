@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>jpa produtcts</title>
+    <!-- Custom styles for this template -->
+    <link href="/general.css" rel="stylesheet">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
@@ -17,9 +20,55 @@
         <a class="btn btn-success mb-3" href="/fusa/create">Create fusa</a>
     </div>
 
-    <div class="table-responsive container">
+    <!-- git-style graph -->
+    <div class="container">
+    
+      <section class="contrib-card">
+        <div class="contrib-card__header">
+          <h3 id="contrib-total">0 contributi nell’ultimo anno</h3>
+          <div class="contrib-settings">Impostazioni</div>
+        </div>
+  
+        <div class="contrib-card__body">
+          <!-- BOARD: mesi + griglia condividono la stessa struttura a 2 colonne -->
+          <div class="contrib-board">
+            <!-- barra mesi: occupa la colonna 2 (la 1 è il gutter dei giorni) -->
+            <div class="contrib-months" id="contrib-months" aria-hidden="true"></div>
+
+            <div class="contrib-weekdays">
+              <span>Lun</span>
+              <span></span>
+              <span>Mer</span>
+              <span></span>
+              <span>Ven</span>
+              <span></span>
+              <span></span>
+            </div>
+
+            <div id="contrib-grid" class="contrib-grid" aria-label="Calendario contributi"></div>
+          </div>
+
+        </div>
+        <div class="contrib-legend">
+          <span>Less</span>
+          <span class="lvl lvl-0"></span>
+          <span class="lvl lvl-1"></span>
+          <span class="lvl lvl-2"></span>
+          <span class="lvl lvl-3"></span>
+          <span class="lvl lvl-4"></span>
+          <span>More</span>
+        </div>
+
+         
+      </section>
+    </div>
+    <!-- git-style graph -->
+
+    <div class="table-responsive container mt-2">
 
       <input style="border-radius: 15px;" class="form-control w-25 h-50 border-black mb-2" id="myInput" type="text" placeholder="Search for name, brand etc.">
+
+     
 
       <table class="table table-dark table-striped table-hover">
         <thead class="">
@@ -58,7 +107,109 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <!-- gestuibe ricerca nella tabella -->
+
+    <script th:inline="javascript">
+      /*<![CDATA[*/
+      // 1) Dati dal backend (date ISO yyyy-MM-dd)
+      const activities = [
+      /*[# th:each="a : ${activities}"]*/
+        { date: /*[[${a.date}]]*/ "2025-01-01", count: /*[[${a.entryCount}]]*/ 0 },
+      /*[/]*/
+      ];
+
+      // 2) Indicizza per data -> count
+      const countByDate = new Map(activities.map(a => [String(a.date), Number(a.count) || 0]));
+      const total = activities.reduce((s,a)=>s + (Number(a.count)||0), 0);
+      document.getElementById("contrib-total").textContent =
+        `${total} contributi nell’ultimo anno`;
+
+      // 3) Limiti anno (usa le tue variabili lato server se preferisci)
+      const year = 2025;
+      const start = new Date(`${year}-01-01T00:00:00`);
+      const end   = new Date(`${year}-12-31T00:00:00`);
+
+      // 4) Trova il lunedì della prima colonna (GitHub allinea a lunedì)
+      const day = new Date(start);
+      const weekday = (day.getDay() + 6) % 7; // 0=Mon..6=Sun
+      day.setDate(day.getDate() - weekday);
+
+      // 5) Prepara contenitori
+      const grid = document.getElementById('contrib-grid');
+      const monthsBar = document.getElementById('contrib-months');
+
+      // 6) Calcola soglie (5 livelli) in base al max giornaliero
+      const maxCount = activities.length ? Math.max(...activities.map(a => a.count)) : 0;
+      // soglie semplici: 0, (0, 25%], (25,50], (50,75], (75,100]
+      const thresholds = [
+        0,
+        Math.max(1, Math.floor(maxCount * 0.25)),
+        Math.max(2, Math.floor(maxCount * 0.50)),
+        Math.max(3, Math.floor(maxCount * 0.75)),
+        Math.max(4, maxCount)
+      ];
+
+      const levelFor = c => {
+        if (c <= 0) return 0;
+        if (c <= thresholds[1]) return 1;
+        if (c <= thresholds[2]) return 2;
+        if (c <= thresholds[3]) return 3;
+        return 4;
+      };
+
+      // 7) Genera colonne (settimane) e celle (giorni)
+      let currentMonthLabelCol = -1;
+      let monthLabels = [];
+
+      while (day <= end) {
+        const col = document.createElement('div');
+        col.className = 'week-col';
+
+        for (let r = 0; r < 7; r++) {
+          const d = new Date(day);
+          d.setDate(day.getDate() + r);
+          const iso = d.toISOString().slice(0,10);
+
+          const cell = document.createElement('div');
+          cell.className = 'day-cell';
+          if (d < start || d > end) {
+            cell.classList.add('out-of-range');
+          } else {
+            const c = countByDate.get(iso) || 0;
+            const lvl = levelFor(c);
+            cell.classList.add(`lvl-${lvl}`);
+            cell.title = `${c} pensieri • ${iso}`;
+            cell.setAttribute('data-date', iso);
+            cell.setAttribute('data-count', c);
+          }
+          col.appendChild(cell);
+        }
+
+        // Etichetta mesi: mostra label quando il primo giorno della settimana è nel nuovo mese
+        const monthIndex = (new Date(day)).getMonth();
+        if (monthLabels.length === 0 || monthIndex !== monthLabels[monthLabels.length-1].month) {
+          monthLabels.push({ month: monthIndex, colIndex: grid.children.length });
+        }
+
+        grid.appendChild(col);
+        // vai alla prossima settimana
+        day.setDate(day.getDate() + 7);
+      }
+
+      // 8) Render etichette mesi
+      const monthNames = ["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"];
+      monthLabels.forEach(m => {
+        const label = document.createElement('span');
+        label.textContent = monthNames[m.month];
+        label.style.gridColumnStart = (m.colIndex + 1);
+        monthsBar.appendChild(label);
+      });
+
+    /*]]>*/
+    </script>
+
+
     <script>
+      // js per ricerca tabella
       $(document).ready(function(){
         $("#myInput").on("keyup", function() {
           var value = $(this).val().toLowerCase();
