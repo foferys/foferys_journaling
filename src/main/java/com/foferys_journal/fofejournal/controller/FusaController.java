@@ -58,9 +58,9 @@ public class FusaController {
             CustomOAuth2User oAuth2User = (CustomOAuth2User)principalUser;
             int userid = oAuth2User.getUser().getId();
     
-            // activities di journaling
-            LocalDate inizio = LocalDate.of(2025, 01, 01);
-            LocalDate fine = LocalDate.of(2025, 12, 30);
+            // activities di journaling || INDICARE ANNO ||
+            LocalDate inizio = LocalDate.of(2026, 01, 01);
+            LocalDate fine = LocalDate.of(2026, 12, 30);
             List<JournalingActivity> activities = journalingActivityRepo.findByUserIdAndDateBetween(userid, inizio, fine);
             model.addAttribute("activities", activities);
 

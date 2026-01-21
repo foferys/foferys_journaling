@@ -113,7 +113,7 @@
       // 1) Dati dal backend (date ISO yyyy-MM-dd)
       const activities = [
       /*[# th:each="a : ${activities}"]*/
-        { date: /*[[${a.date}]]*/ "2025-01-01", count: /*[[${a.entryCount}]]*/ 0 },
+        { date: /*[[${a.date}]]*/ "2026-01-01", count: /*[[${a.entryCount}]]*/ 0 },
       /*[/]*/
       ];
 
@@ -124,7 +124,7 @@
         `${total} contributi nell’ultimo anno`;
 
       // 3) Limiti anno (usa le tue variabili lato server se preferisci)
-      const year = 2025;
+      const year = new Date().getFullYear();
       const start = new Date(`${year}-01-01T00:00:00`);
       const end   = new Date(`${year}-12-31T00:00:00`);
 

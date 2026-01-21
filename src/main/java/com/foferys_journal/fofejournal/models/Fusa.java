@@ -2,6 +2,7 @@ package com.foferys_journal.fofejournal.models;
 
 
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 
@@ -20,8 +21,8 @@ public class Fusa {
     @Column(columnDefinition = "TEXT") // permette testi lunghi SE NON VIENE DEFINITO si imposta su varchar!
     private String contenuto;
 
-    private LocalDateTime dataCreazione;
-    private LocalDateTime dataModifica;
+    private LocalDate dataCreazione;
+    private LocalDate dataModifica;
 
     // private Date createdAt;
     private String imageFileName;
@@ -69,16 +70,16 @@ public class Fusa {
     public void setContenuto(String contenuto) {
         this.contenuto = contenuto;
     }
-    public LocalDateTime getDataCreazione() {
+    public LocalDate getDataCreazione() {
         return dataCreazione;
     }
-    public void setDataCreazione(LocalDateTime dataCreazione) {
+    public void setDataCreazione(LocalDate dataCreazione) {
         this.dataCreazione = dataCreazione;
     }
-    public LocalDateTime getDataModifica() {
+    public LocalDate getDataModifica() {
         return dataModifica;
     }
-    public void setDataModifica(LocalDateTime dataModifica) {
+    public void setDataModifica(LocalDate dataModifica) {
         this.dataModifica = dataModifica;
     }
     // public Date getCreatedAt() {

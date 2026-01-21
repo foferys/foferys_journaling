@@ -113,13 +113,15 @@ public class FusaService {
         try {
             fusaRepository.delete(fusa);
 
-            JournalingActivity journalingActivity = journalingActivityRepo.findByUserId(user_id);
-            System.out.println("user id: " + user_id + " and count="+journalingActivity.getEntryCount());
-            if(journalingActivity.getEntryCount() != 0) {
+            //eliminiamo l'activity che ha la data uguale a quella cliccata da elimnare
+            JournalingActivity journalingActiv = journalingActivityRepo.findByUserIDAndDate(user_id, fusa.getDataCreazione());
+            System.out.println("data in questione: " + fusa.getDataCreazione());
+            
+            if(journalingActiv.getEntryCount() != 0) {
                 
-                journalingActivity.setEntryCount(journalingActivity.getEntryCount() -1);
+                journalingActiv.setEntryCount(journalingActiv.getEntryCount() -1);
             }
-            journalingActivityRepo.save(journalingActivity);
+            journalingActivityRepo.save(journalingActiv);
 
             return true;
 
