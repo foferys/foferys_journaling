@@ -31,3 +31,16 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+# Credenziali sensibili
+.env
+application-local.properties
+application-secrets.properties
+
+# Altre cose comuni da ignorare
+*.log
+target/
+.idea/
+*.iml
+.DS_Store
