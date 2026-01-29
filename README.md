@@ -49,6 +49,27 @@ GET /whoami
 - **Maven**
 - **Docker** (consigliato per Postgres)
 
+
+## Setup Locale
+
+1. Copia il file `.env.example` in `.env`:
+```bash
+   cp .env.example .env
+```
+
+2. Modifica `.env` con le tue credenziali:
+   - Ottieni GitHub OAuth credentials da: https://github.com/settings/developers
+   - Configura il database PostgreSQL
+
+3. Avvia l'applicazione:
+```bash
+   mvn spring-boot:run
+```
+
+## Configurazione Database
+
+Assicurati che PostgreSQL sia in esecuzione sulla porta 5434 con il database `journalingdb`.
+
 ### 1) Start database (Docker Compose)
 
 Il progetto include `docker-compose.yaml` con:
