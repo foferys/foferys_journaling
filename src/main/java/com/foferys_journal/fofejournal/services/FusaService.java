@@ -20,6 +20,8 @@ import com.foferys_journal.fofejournal.models.FusaDto;
 import com.foferys_journal.fofejournal.models.JournalingActivity;
 import com.foferys_journal.fofejournal.models.User;
 import com.foferys_journal.fofejournal.models.builder.FusaBuilder;
+
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 
 
@@ -84,24 +86,26 @@ public class FusaService {
     @Transactional
     public void saveFusa(FusaDto fusaDto, String imageFileName, String username) {
 
-        User user = uRepo.findByUsername(username).get();
+        // User user = uRepo.findByUsername(username).get();
+        User user = uRepo.findByUsername(username)
+            .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         //accediamo direttamente al metodo statico del builder passandogli i dati di cui ha bisogno
         Fusa fusa = FusaBuilder.toEntity(fusaDto, user, imageFileName);
 
         LocalDate today = LocalDate.now();
-        Optional<JournalingActivity> existingAcativity = journalingActivityRepo.findByUserIdAndDate(user.getId(), today);
 
-        JournalingActivity activity;
-        if(existingAcativity.isPresent()) {
-            activity = existingAcativity.get();
-            activity.setEntryCount(activity.getEntryCount() + 1);
-        }else {
-            activity = new JournalingActivity();
-            activity.setUserId(user.getId());
-            activity.setDate(today);
-            activity.setEntryCount(1);
-        }
+        JournalingActivity activity = journalingActivityRepo
+            .findByUserIdAndDate(user.getId(), today)
+            .orElseGet(() -> {
+                JournalingActivity ja = new JournalingActivity();
+                ja.setUserId(user.getId());
+                ja.setDate(today);
+                ja.setEntryCount(0);
+                return ja;
+            });
+
+        activity.setEntryCount(activity.getEntryCount() + 1);
 
         journalingActivityRepo.save(activity);
 
@@ -109,28 +113,45 @@ public class FusaService {
     }
 
     @Transactional
-    public boolean delete(Fusa fusa, int user_id){
-        try {
-            fusaRepository.delete(fusa);
+    public void delete(Fusa fusa, int userId) {
 
-            //eliminiamo l'activity che ha la data uguale a quella cliccata da elimnare
-            JournalingActivity journalingActiv = journalingActivityRepo.findByUserIDAndDate(user_id, fusa.getDataCreazione());
-            System.out.println("data in questione: " + fusa.getDataCreazione());
-            
-            if(journalingActiv.getEntryCount() != 0) {
-                
-                journalingActiv.setEntryCount(journalingActiv.getEntryCount() -1);
-            }
-            journalingActivityRepo.save(journalingActiv);
+    
+        fusaRepository.delete(fusa);
 
-            return true;
+        /*
+            qui abbiamo Un’entity MANAGED, cioè quando:
+            è stata caricata dal database dentro una transazione attiva tramite EntityManager / Repository 
+        */
+        JournalingActivity activity = journalingActivityRepo
+            .findByUserIdAndDate(userId, fusa.getDataCreazione()) 
+            .orElseThrow(() ->
+                new IllegalStateException("JournalingActivity not found")
+            );   // 👆 ORA activity è MANAGED
 
-        } catch (Exception e) {
-            System.out.println("errore nella cancellazione della nota: " + e.getMessage());
-            return false;
+        /*
+            Da questo momento: Hibernate la tiene sotto controllo Tiene una copia dello stato iniziale Sa esattamente cosa cambia
+            Cosa succede quando fai setEntryCount():
+            Qui NON stai salvando nulla nel DB, ma Stai solo:
+            modificando un oggetto Java che Hibernate sta osservando
+            Hibernate fa una cosa chiamata --> 🧠 Dirty Checking, Cioè:
+            confronta lo stato iniziale con lo stato finale e segna l’entity come “sporca”
+        */
+
+        if (activity.getEntryCount() > 0) {
+            activity.setEntryCount(activity.getEntryCount() - 1);
         }
-    }
 
+        /*
+            Quando avviene davvero l’UPDATE nel DB?
+
+            Hibernate esegue l’UPDATE:
+
+            ✅ automaticamente
+            ✅ senza save()
+            ✅ al commit della transazione    
+        */
+
+    }
 
 
 }

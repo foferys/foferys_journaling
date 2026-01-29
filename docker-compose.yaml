@@ -4,7 +4,7 @@ services:
   
   postgres:
     container_name: fofejour_postgres
-    image: postgres
+    image: postgres:17
     environment:
       POSTGRES_USER: foferys
       POSTGRES_PASSWORD: foferys
