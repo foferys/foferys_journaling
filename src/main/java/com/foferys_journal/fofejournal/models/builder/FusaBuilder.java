@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.Date;
 
 import com.foferys_journal.fofejournal.models.Fusa;
+import com.foferys_journal.fofejournal.models.FusaApiRequest;
 import com.foferys_journal.fofejournal.models.FusaDto;
 import com.foferys_journal.fofejournal.models.User;
 
@@ -27,6 +28,18 @@ public class FusaBuilder {
         //con @JoinColumn(name = "user_id"), JPA imposterà automaticamente il valore dell'ID dell'utente (il campo id dell'entità User) nella colonna 
         //user_id della tabella fusa.
 
+        return fusa;
+    }
+
+    /** Crea una Fusa da una richiesta API (senza immagine). */
+    public static Fusa toEntityFromApi(FusaApiRequest request, User user) {
+        LocalDate today = LocalDate.now();
+        Fusa fusa = new Fusa();
+        fusa.setTitolo(request.getTitolo());
+        fusa.setContenuto(request.getContenuto());
+        fusa.setDataCreazione(today);
+        fusa.setImageFileName(null);
+        fusa.setUser(user);
         return fusa;
     }
 

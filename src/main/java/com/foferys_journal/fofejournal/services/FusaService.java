@@ -16,6 +16,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.multipart.MultipartFile;
 import com.foferys_journal.fofejournal.models.Fusa;
+import com.foferys_journal.fofejournal.models.FusaApiRequest;
 import com.foferys_journal.fofejournal.models.FusaDto;
 import com.foferys_journal.fofejournal.models.JournalingActivity;
 import com.foferys_journal.fofejournal.models.User;
@@ -110,6 +111,27 @@ public class FusaService {
         journalingActivityRepo.save(activity);
 
         fusaRepository.save(fusa);
+    }
+
+    /** Salva una Fusa da richiesta API (senza immagine). */
+    @Transactional
+    public Fusa saveFusaFromApi(FusaApiRequest request, String username) {
+        User user = uRepo.findByUsername(username)
+            .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        Fusa fusa = FusaBuilder.toEntityFromApi(request, user);
+        LocalDate today = LocalDate.now();
+        JournalingActivity activity = journalingActivityRepo
+            .findByUserIdAndDate(user.getId(), today)
+            .orElseGet(() -> {
+                JournalingActivity ja = new JournalingActivity();
+                ja.setUserId(user.getId());
+                ja.setDate(today);
+                ja.setEntryCount(0);
+                return ja;
+            });
+        activity.setEntryCount(activity.getEntryCount() + 1);
+        journalingActivityRepo.save(activity);
+        return fusaRepository.save(fusa);
     }
 
     @Transactional
