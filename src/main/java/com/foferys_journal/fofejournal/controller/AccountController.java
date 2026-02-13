@@ -1,5 +1,6 @@
 package com.foferys_journal.fofejournal.controller;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,6 +33,7 @@ public class AccountController {
     @Autowired
     private UserService userService;
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccountController.class);
 
 
     @GetMapping({"", "/"})
@@ -40,6 +42,14 @@ public class AccountController {
         /* !!!! - DA SISTEMARE IN MODO PIU FUNZIONALE - tipo password nell'accesso con github non deve esserci e non deve essere modificabile !!!! */
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        // Log per indicare che è stata ricevuta una richiesta GET su /account.
+        // Scopo: utile per debug o audit. Attenzione a non loggare dati sensibili.
+        // Nota: si passa `userDetails` come argomento ma manca il placeholder '{}' nel messaggio,
+        // quindi l'oggetto non verrà stampato come previsto — usare:
+        // log.info("Richiesta Get /account/ ricevuta {}", userDetails);
+        // In produzione valutare log.debug o rimuovere i dettagli utente.
+        log.info("Richiesta Get /account/ ricevuta {}", userDetails);
 
         if (auth != null && auth.isAuthenticated()) {
             if (auth.getPrincipal() instanceof CustomOAuth2User) {
@@ -66,8 +76,6 @@ public class AccountController {
         }
         
         return "/account/userdetails";
-
-
     }
 
     @GetMapping("/modificautente")
