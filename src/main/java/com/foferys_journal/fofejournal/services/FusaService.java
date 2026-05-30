@@ -9,7 +9,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.Date;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
@@ -21,7 +20,6 @@ import com.foferys_journal.fofejournal.models.FusaDto;
 import com.foferys_journal.fofejournal.models.JournalingActivity;
 import com.foferys_journal.fofejournal.models.User;
 import com.foferys_journal.fofejournal.models.builder.FusaBuilder;
-
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 

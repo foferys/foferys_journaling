@@ -58,9 +58,11 @@ public class FusaController {
             CustomOAuth2User oAuth2User = (CustomOAuth2User)principalUser;
             int userid = oAuth2User.getUser().getId();
     
-            // activities di journaling || INDICARE ANNO ||
-            LocalDate inizio = LocalDate.of(2026, 01, 01);
-            LocalDate fine = LocalDate.of(2026, 12, 30);
+            // fix using current date to get the journaling activities of the current year, and pass them to the
+            // model to be able to show them in the fusa page, and also pass the list of fusa of the user to show them in the page
+            int currentYear = LocalDate.now().getYear();
+            LocalDate inizio = LocalDate.of(currentYear, 1, 1);
+            LocalDate fine = LocalDate.of(currentYear, 12, 31);
             List<JournalingActivity> activities = journalingActivityRepo.findByUserIdAndDateBetween(userid, inizio, fine);
             model.addAttribute("activities", activities);
 
@@ -83,8 +85,9 @@ public class FusaController {
             List<Fusa> listafusa = fusa_repo.findByUserId(idUser); //-> uso il metodo creato in fusaRepository per avere i prodotti in base all'id
             model.addAttribute("listafusa", listafusa);
 
-            LocalDate inizio = LocalDate.of(2025, 01, 01);
-            LocalDate fine = LocalDate.of(2025, 12, 30);
+            int currentYear = LocalDate.now().getYear();
+            LocalDate inizio = LocalDate.of(currentYear, 1, 1);
+            LocalDate fine = LocalDate.of(currentYear, 12, 31);
             List<JournalingActivity> activities = journalingActivityRepo.findByUserIdAndDateBetween(idUser, inizio, fine);
             model.addAttribute("activities", activities);
             System.out.println("activities:\n");
